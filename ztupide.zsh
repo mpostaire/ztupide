@@ -3,15 +3,9 @@
 # TODO comments
 
 _ztupide_source() {
-    if [ "${1}" = "--force" ]; then
-        local force=1
-        shift 1
-    fi
-
     for f in ${1:h}/**/*.zsh; do
         [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
     done
-
     builtin source "${1}"
 }
 

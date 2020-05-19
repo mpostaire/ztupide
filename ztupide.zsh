@@ -51,7 +51,7 @@ _ztupide_remove() {
 }
 
 _ztupide_update() {
-    git -C ${_ztupide_path:h} fetch
+    git -C ${_ztupide_path:h} fetch --quiet
     local local=$(git -C ${_ztupide_path:h} rev-parse HEAD)
     local base=$(git -C ${_ztupide_path:h} rev-parse '@{u}')
     if [ "${local}" != "${base}" ]; then

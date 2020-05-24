@@ -20,7 +20,7 @@ _ztupide_load() {
     
     local plugin_file=("${plugin_path}"/*.plugin.zsh(NY1)) # match first .plugin.zsh found, prevents multiple .plugin.zsh
     if [[ -d "${plugin_path}" && "${#plugin_file}" -eq 1 ]]; then
-        echo "_load_success:${1}:${plugin_file[1]}:${2}"
+        echo "_load_success:${1}:${plugin_file[1]}:${(j/:/)@:2}"
     else
         rm -rf "${plugin_path}"
         echo "_load_fail:${1}"
@@ -103,15 +103,17 @@ _ztupide_load_async_handler() {
             local ret=(${(@s/:/)line})
             _ztupide_to_source["${ret[2]}"]="${ret[3]}"
 
-            for e in ${_ztupide_to_load}; do
-                if [ -z "${_ztupide_to_source["${e}"]}" ]; then
+            for plugin in ${_ztupide_to_load}; do
+                if [ -z "${_ztupide_to_source["${plugin}"]}" ]; then
                     return
-                elif [ "${_ztupide_to_source["${e}"]}" = "_fail" ]; then
+                elif [ "${_ztupide_to_source["${plugin}"]}" = "_fail" ]; then
                     _ztupide_to_load=(${_ztupide_to_load:1})
                 else
                     _ztupide_to_load=(${_ztupide_to_load:1})
-                    _ztupide_source "${_ztupide_to_source["${e}"]}"
-                    [ -z "${ret[4]}" ] || eval "${ret[4]}"
+                    _ztupide_source "${_ztupide_to_source["${plugin}"]}"
+                    for ((i = 4; i <= ${#ret}; i++)); do
+                        [ -z "${ret[${i}]}" ] || eval "${ret[${i}]}"
+                    done
                 fi
             done
         else
@@ -122,11 +124,13 @@ _ztupide_load_async_handler() {
 }
 
 _ztupide_load_sync() {
-    local ret=$(_ztupide_load "${1}")
+    local ret=$(_ztupide_load ${@})
     if [[ "${ret}" =~ "_load_success:*" ]]; then
         ret=(${(@s/:/)ret})
         _ztupide_source "${ret[3]}"
-        [ -z "${ret[4]}" ] || eval "${ret[4]}"
+        for ((i = 4; i <= ${#ret}; i++)); do
+            [ -z "${ret[${i}]}" ] || eval "${ret[${i}]}"
+        done
     else
         echo "plugin load error: "${${(@s/:/)ret}[2]}" is not a valid plugin"
     fi
@@ -163,12 +167,13 @@ _ztupide_init() {
 ztupide() {
     case "${1}" in
     load)
-        [ -z "${2}" ] && echo "plugin load error: none specified" && exit 1
         if [ "${2}" = "--async" ]; then
+            [ -z "${3}" ] && echo "plugin load error: none specified" && exit 1
             _ztupide_to_load+="${3}"
             _ztupide_load_async ${@:3}
         else
-            _ztupide_load_sync "${2}"
+            [ -z "${2}" ] && echo "plugin load error: none specified" && exit 1
+            _ztupide_load_sync "${@:2}"
         fi
         ;;
     remove)

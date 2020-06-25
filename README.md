@@ -1,6 +1,6 @@
 # Ztupide
 
-A simple and fast zsh plugin manager.
+A simple and fast zsh plugin manager. It uses zcompile and async loading to speed up your shell startup time.
 
 ## Installation
 

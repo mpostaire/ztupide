@@ -51,33 +51,31 @@ _ztupide_remove() {
 }
 
 _ztupide_update() {
-    git -C ${_ztupide_path:h} fetch --quiet
-    local local=$(git -C ${_ztupide_path:h} rev-parse HEAD)
-    local base=$(git -C ${_ztupide_path:h} rev-parse '@{u}')
+    echo "checking ${1:t} for updates"
+    git -C ${1} fetch --quiet
+    local local=$(git -C ${1} rev-parse HEAD)
+    local base=$(git -C ${1} rev-parse '@{u}')
     if [ "${local}" != "${base}" ]; then
-        echo "ztupide self updating..."
-        git -C ${_ztupide_path:h} pull origin master --quiet
-        echo "ztupide updated"
-        # local self_updated=1
+        git -C ${1} pull origin master --quiet
+        echo "${1:t} updated"
     fi
+}
 
-    echo "ztupide updating plugins..."
+_ztupide_update_all() {
+    _ztupide_update ${_ztupide_path:h}
+
     local plugin_path
     for plugin_path in "${ZTUPIDE_PLUGIN_PATH}"/*(/N); do
         if [ -d "${plugin_path}"/.git ]; then
             local plugin_file=("${plugin_path}"/*.plugin.zsh(NY1))
             if [ "${#plugin_file}" -eq 1 ]; then
-                git -C "${plugin_path}" pull origin master --quiet
-                local plugin_name="${plugin_path:t}"
-                echo "${plugin_name} plugin updated"
+                _ztupide_update ${plugin_path}
             fi
         fi
     done
     
     echo "plugins updated"
     echo "${EPOCHSECONDS}" > ~/.zsh/ztupide/ztupide_last_update
-
-    # [ -z ${self_updated} ] || exec zsh
 }
 
 _ztupide_autoupdate() {
@@ -85,9 +83,9 @@ _ztupide_autoupdate() {
         if [ -f ~/.zsh/ztupide/ztupide_last_update ]; then
             local delta=$(cat ~/.zsh/ztupide/ztupide_last_update)
             (( delta = ${EPOCHSECONDS} - ${delta} ))
-            [ ${delta} -gt ${ZTUPIDE_AUTOUPDATE} ] && _ztupide_update
+            [ ${delta} -gt ${ZTUPIDE_AUTOUPDATE} ] && _ztupide_update_all
         else
-            _ztupide_update
+            _ztupide_update_all
         fi
     fi
 }
@@ -180,7 +178,7 @@ ztupide() {
         _ztupide_remove "${2}"
         ;;
     update)
-        _ztupide_update
+        _ztupide_update_all
         ;;
     *)
         echo "Usage : ztupide OPTION [--async] [PLUGIN]

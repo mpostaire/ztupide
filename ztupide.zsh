@@ -1,7 +1,5 @@
 #!/usr/bin/env zsh
 
-# TODO comments
-
 _ztupide_source() {
     for f in ${1:h}/**/*.zsh; do
         [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
@@ -28,7 +26,7 @@ _ztupide_load() {
 }
 
 _ztupide_remove() {
-    [ -z "${1}" ] && echo "plugin remove error: none specified" && exit 1
+    [ -z "${1}" ] && echo "plugin remove error: none specified" && return 1
 
     local plugin_name="${1:t}"
     local plugin_path="${ZTUPIDE_PLUGIN_PATH}"/"${plugin_name}"
@@ -46,12 +44,12 @@ _ztupide_remove() {
         fi
     else
         echo "plugin remove error: ${plugin_name} plugin not found"
-        exit 1
+        return 1
     fi
 }
 
 _ztupide_update() {
-    echo "checking ${1:t} for updates"
+    echo "checking ${1:t} for updates..."
     git -C ${1} fetch --quiet
     local local=$(git -C ${1} rev-parse HEAD)
     local base=$(git -C ${1} rev-parse '@{u}')
@@ -162,15 +160,24 @@ _ztupide_init() {
     compdef _ztupide ztupide
 }
 
+_ztupide_help() {
+    echo "Usage : ztupide OPTION [--async] [PLUGIN]
+
+Options:
+load\t\tload PLUGIN (asynchronously if --async used)
+remove\t\tremove PLUGIN
+update\t\tupdate ztupide and all plugins"
+}
+
 ztupide() {
     case "${1}" in
     load)
         if [ "${2}" = "--async" ]; then
-            [ -z "${3}" ] && echo "plugin load error: none specified" && exit 1
+            [ -z "${3}" ] && echo "plugin load error: none specified" && return 1
             _ztupide_to_load+="${3}"
             _ztupide_load_async ${@:3}
         else
-            [ -z "${2}" ] && echo "plugin load error: none specified" && exit 1
+            [ -z "${2}" ] && echo "plugin load error: none specified" && return 1
             _ztupide_load_sync "${@:2}"
         fi
         ;;
@@ -180,13 +187,12 @@ ztupide() {
     update)
         _ztupide_update_all
         ;;
+    help)
+        _ztupide_help
+        ;;
     *)
-        echo "Usage : ztupide OPTION [--async] [PLUGIN]
-        
-Options:
-load\t\tload PLUGIN (asynchronously if --async used)
-remove\t\tremove PLUGIN
-update\t\tupdate ztupide and all plugins"
+        _ztupide_help
+        return 1
         ;;
     esac
 }
@@ -195,7 +201,7 @@ update\t\tupdate ztupide and all plugins"
 function _ztupide() {
     local line
     _arguments -C \
-        '1: :((load\:"load plugin" remove\:"remove plugin" update\:"update ztupide and all plugins"))' \
+        '1: :((load\:"load plugin" remove\:"remove plugin" update\:"update ztupide and all plugins" help\:"print help message"))' \
         '*::arg:->args'
 
     local plugins=(${ZTUPIDE_PLUGIN_PATH}/*(N))

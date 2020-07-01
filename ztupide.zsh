@@ -164,6 +164,7 @@ _ztupide_help() {
     echo "Usage : ztupide OPTION [--async] [PLUGIN]
 
 Options:
+help\t\tshows this message
 load\t\tload PLUGIN (asynchronously if --async used)
 remove\t\tremove PLUGIN
 update\t\tupdate ztupide and all plugins"

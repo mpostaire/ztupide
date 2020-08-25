@@ -50,10 +50,11 @@ _ztupide_remove() {
 
 _ztupide_update() {
     echo "checking ${1:t} for updates..."
-    git -C ${1} fetch --quiet
+    git -C ${1} fetch origin master --quiet
     local local=$(git -C ${1} rev-parse HEAD)
     local base=$(git -C ${1} rev-parse '@{u}')
     if [ "${local}" != "${base}" ]; then
+        git reset --hard origin/master
         git -C ${1} pull origin master --quiet
         echo "${1:t} updated"
     fi

@@ -4,7 +4,7 @@ _ztupide_source() {
     for f in ${1:h}/**/*.zsh; do
         [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
     done
-    builtin source "${1}"
+    builtin source "${1}" > /dev/null 2> /dev/null
 }
 
 _ztupide_load() {
@@ -72,7 +72,6 @@ _ztupide_update_all() {
         fi
     done
     
-    echo "plugins updated"
     echo "${EPOCHSECONDS}" > ~/.zsh/ztupide/ztupide_last_update
 }
 
@@ -89,12 +88,7 @@ _ztupide_autoupdate() {
 }
 
 _ztupide_load_async_handler() {
-    if read -r -u "${1}" line && [[ "${line}" =~ "_load*" ]]; then
-        # close FD
-        exec {1}<&-
-        # remove handler
-        zle -F "${1}"
-
+    if read -r -u ${1} line && [[ "${line}" =~ "_load*" ]]; then
         if [[ "${line}" =~ "_load_success:*" ]]; then
             local ret=(${(@s/:/)line})
             _ztupide_to_source["${ret[2]}"]="${ret[3]}"
@@ -116,6 +110,11 @@ _ztupide_load_async_handler() {
             _ztupide_to_source["${${(@s/:/)line}[2]}"]="_fail"
             echo "plugin load error: "${${(@s/:/)line}[2]}" is not a valid plugin"
         fi
+
+        # close FD
+        exec {1}<&-
+        # remove handler
+        zle -F ${1}
     fi
 }
 
@@ -141,7 +140,7 @@ _ztupide_load_async() {
     command true
 
     # zle -F installs input handler on given FD
-    zle -F "${async_fd}" _ztupide_load_async_handler
+    zle -F ${async_fd} _ztupide_load_async_handler
 }
 
 _ztupide_init() {

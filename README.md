@@ -19,7 +19,7 @@ You can set variables to change the behaviour of ztupide (they must be set befor
 | Variable | Effect |
 |-|-|
 | ZTUPIDE_PLUGIN_PATH | Plugins installation path (default: `~/.zsh/plugins`) |
-| ZTUPIDE_AUTOUPDATE  | Check for update interval in seconds (no autoupdates if unset). |
+| ZTUPIDE_AUTOUPDATE  | Check for updates interval in seconds (no autoupdates if unset). |
 
 ## Usage
 

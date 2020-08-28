@@ -111,12 +111,12 @@ _ztupide_load_async_handler() {
             _ztupide_to_source["${${(@s/:/)line}[2]}"]="_fail"
             echo "plugin load error: "${${(@s/:/)line}[2]}" is not a valid plugin"
         fi
-
-        # close FD
-        exec {1}<&-
-        # remove handler
-        zle -F ${1}
     fi
+    
+    # close FD
+    exec {1}<&-
+    # remove handler
+    zle -F ${1}
 }
 
 _ztupide_load_sync() {

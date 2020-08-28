@@ -54,7 +54,7 @@ _ztupide_update() {
     local local=$(git -C ${1} rev-parse HEAD)
     local base=$(git -C ${1} rev-parse '@{u}')
     if [ "${local}" != "${base}" ]; then
-        git reset --hard origin/master
+        git -C ${1} reset --hard origin/master
         git -C ${1} pull origin master --quiet
         echo "${1:t} updated"
     fi

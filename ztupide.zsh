@@ -1,26 +1,28 @@
 #!/usr/bin/env zsh
 
 _ztupide_source() {
-    for f in ${1:h}/**/*.zsh; do
+    for f in ${1:h}/**/*.{zsh,zsh-theme}(N); do
         [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
     done
     builtin source "${1}" > /dev/null 2> /dev/null
 }
 
 _ztupide_load() {
-    # TODO: support for .zsh-theme
     [ -d "${ZTUPIDE_PLUGIN_PATH}" ] || mkdir "${ZTUPIDE_PLUGIN_PATH}"
 
     local plugin_name="${1:t}"
     local plugin_path="${ZTUPIDE_PLUGIN_PATH}"/"${plugin_name}"
     [[ "${1}" =~ .+"/".+ && ! -d "${plugin_path}" ]] && git -C "${ZTUPIDE_PLUGIN_PATH}" clone https://github.com/"${1:t2}" --quiet
 
-    
     local plugin_file=("${plugin_path}"/*.plugin.zsh(NY1)) # match first .plugin.zsh found, prevents multiple .plugin.zsh
+    local theme_file=("${plugin_path}"/*.zsh-theme(NY1)) # match first .zsh-theme found, prevents multiple .zsh-theme
     if [[ -d "${plugin_path}" && "${#plugin_file}" -eq 1 ]]; then
         echo "_load_success:${1}:${plugin_file[1]}:${(j/:/)@:2}"
+    elif [[ -d "${plugin_path}" && "${_ztupide_theme_loaded}" -eq 0 && "${#theme_file}" -eq 1 ]]; then
+        echo "_load_success:${1}:${theme_file[1]}:${(j/:/)@:2}"
+        _ztupide_theme_loaded=1
     else
-        rm -rf "${plugin_path}"
+        [ -d "${plugin_path}"/.git ] && rm -rf "${plugin_path}"
         echo "_load_fail:${1}"
     fi
 }
@@ -146,6 +148,7 @@ _ztupide_load_async() {
 
 _ztupide_init() {
     _ztupide_path=${1:a}
+    _ztupide_theme_loaded=0
 
     ZTUPIDE_PLUGIN_PATH=${ZTUPIDE_PLUGIN_PATH:-~/.zsh/plugins}
     # zcompile this file

@@ -1,9 +1,6 @@
 #!/usr/bin/env zsh
 
 _ztupide_source() {
-    for f in ${1:h}/**/*.{zsh,zsh-theme}(N); do
-        [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
-    done
     builtin source "${1}" > /dev/null 2> /dev/null
 }
 
@@ -16,6 +13,12 @@ _ztupide_load() {
 
     local plugin_file=("${plugin_path}"/*.plugin.zsh(NY1)) # match first .plugin.zsh found, prevents multiple .plugin.zsh
     local theme_file=("${plugin_path}"/*.zsh-theme(NY1)) # match first .zsh-theme found, prevents multiple .zsh-theme
+    
+    # zcompile all .zsh/.zsh-theme files
+    for f in ${plugin_path}/**/*.{zsh,zsh-theme}(N); do
+        [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
+    done
+    
     if [[ -d "${plugin_path}" && "${#plugin_file}" -eq 1 ]]; then
         echo "_load_success:${1}:${plugin_file[1]}:${(j/:/)@:2}"
     elif [[ -d "${plugin_path}" && -z "${_ztupide_theme_loaded}" && "${#theme_file}" -eq 1 ]]; then

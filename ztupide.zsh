@@ -18,9 +18,10 @@ _ztupide_load() {
     local theme_file=("${plugin_path}"/*.zsh-theme(NY1)) # match first .zsh-theme found, prevents multiple .zsh-theme
     if [[ -d "${plugin_path}" && "${#plugin_file}" -eq 1 ]]; then
         echo "_load_success:${1}:${plugin_file[1]}:${(j/:/)@:2}"
-    elif [[ -d "${plugin_path}" && "${_ztupide_theme_loaded}" -eq 0 && "${#theme_file}" -eq 1 ]]; then
-        echo "_load_success:${1}:${theme_file[1]}:${(j/:/)@:2}"
-        _ztupide_theme_loaded=1
+    elif [[ -d "${plugin_path}" && -z "${_ztupide_theme_loaded}" && "${#theme_file}" -eq 1 ]]; then
+        echo "_load_success_theme:${1}:${theme_file[1]}:${(j/:/)@:2}"
+    elif [[ -d "${plugin_path}" && -n "${_ztupide_theme_loaded}" && "${#theme_file}" -eq 1 ]]; then
+        echo "_load_fail_theme:${1}"
     else
         [ -d "${plugin_path}"/.git ] && rm -rf "${plugin_path}"
         echo "_load_fail:${1}"
@@ -91,10 +92,11 @@ _ztupide_autoupdate() {
 }
 
 _ztupide_load_async_handler() {
-    if read -r -u ${1} line && [[ "${line}" =~ "_load*" ]]; then
-        if [[ "${line}" =~ "_load_success:*" ]]; then
+    if read -r -u ${1} line && [[ "${line:0:5}" = "_load" ]]; then
+        if [[ "${line:5:8}" = "_success" ]]; then
             local ret=(${(@s/:/)line})
-            _ztupide_to_source["${ret[2]}"]="${ret[3]}"
+            local type=${${ret[1]:13:6}:-"_plugi"} # easier to parse if the types string are the same length
+            _ztupide_to_source["${ret[2]}"]="${type}:${ret[3]}"
 
             for plugin in ${_ztupide_to_load}; do
                 if [ -z "${_ztupide_to_source["${plugin}"]}" ]; then
@@ -102,8 +104,16 @@ _ztupide_load_async_handler() {
                 elif [ "${_ztupide_to_source["${plugin}"]}" = "_fail" ]; then
                     _ztupide_to_load=(${_ztupide_to_load:1})
                 else
+                    if [[ "${_ztupide_to_source["${plugin}"]:0:6}" = "_theme" ]]; then
+                        if [[ -z "${_ztupide_theme_loaded}" ]]; then
+                            _ztupide_theme_loaded="${plugin}"
+                        else
+                            echo "cannot load theme: "${plugin}" -> the following theme is already in use: ${_ztupide_theme_loaded}"
+                            continue
+                        fi
+                    fi
                     _ztupide_to_load=(${_ztupide_to_load:1})
-                    _ztupide_source "${_ztupide_to_source["${plugin}"]}"
+                    _ztupide_source "${_ztupide_to_source["${plugin}"]:7}"
                     for ((i = 4; i <= ${#ret}; i++)); do
                         [ -z "${ret[${i}]}" ] || eval "${ret[${i}]}"
                     done
@@ -111,7 +121,11 @@ _ztupide_load_async_handler() {
             done
         else
             _ztupide_to_source["${${(@s/:/)line}[2]}"]="_fail"
-            echo "plugin load error: "${${(@s/:/)line}[2]}" is not a valid plugin"
+            if [[ "${line:0:16}" = "_load_fail_theme" ]]; then
+                echo "cannot load theme: "${${(@s/:/)line}[2]}" -> the following theme is already in use: ${_ztupide_theme_loaded}"
+            else
+                echo "plugin load error: "${${(@s/:/)line}[2]}" is not a valid plugin"
+            fi
         fi
     fi
     
@@ -123,12 +137,15 @@ _ztupide_load_async_handler() {
 
 _ztupide_load_sync() {
     local ret=$(_ztupide_load ${@})
-    if [[ "${ret}" =~ "_load_success:*" ]]; then
+    if [[ "${ret:0:13}" = "_load_success" ]]; then
+        [[ "${ret:13:6}" = "_theme" ]] && _ztupide_theme_loaded="${${(@s/:/)ret}[2]}"
         ret=(${(@s/:/)ret})
         _ztupide_source "${ret[3]}"
         for ((i = 4; i <= ${#ret}; i++)); do
             [ -z "${ret[${i}]}" ] || eval "${ret[${i}]}"
         done
+    elif [[ "${ret:0:16}" = "_load_fail_theme" ]]; then
+        echo "cannot load theme: "${${(@s/:/)ret}[2]}" -> the following theme is already in use: ${_ztupide_theme_loaded}"
     else
         echo "plugin load error: "${${(@s/:/)ret}[2]}" is not a valid plugin"
     fi
@@ -148,7 +165,7 @@ _ztupide_load_async() {
 
 _ztupide_init() {
     _ztupide_path=${1:a}
-    _ztupide_theme_loaded=0
+    typeset -g _ztupide_theme_loaded
 
     ZTUPIDE_PLUGIN_PATH=${ZTUPIDE_PLUGIN_PATH:-~/.zsh/plugins}
     # zcompile this file

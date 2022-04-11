@@ -23,7 +23,7 @@ You can set variables to change the behaviour of ztupide (they must be set befor
 
 ## Usage
 
-Ztupide supports "local" and "remote" plugins and must use the `.plugin.zsh` extension. Local plugins are manually installed in the ZTUPIDE_PLUGIN_PATH while remote plugins are git repositories cloned from github.
+Ztupide supports "local" and "remote" plugins and must use the `.plugin.zsh` or `.zsh-theme` extension. Local plugins are manually installed in the ZTUPIDE_PLUGIN_PATH while remote plugins are git repositories cloned from github.
 
 Use `ztupide load user/plugin_name` to load a remote plugin (only github is supported) and `ztupide load plugin_name` to load a local plugin. You can use async mode like this: `ztupide load --async user/plugin_name`. Plugins loaded in async mode are guaranteed to be sourced in the same order as they are loaded. You can also add callbacks after the plugin is loaded like this: `ztupide load --async user/plugin_name callback1 callback2 ...`.
 

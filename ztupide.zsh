@@ -1,9 +1,6 @@
 #!/usr/bin/env zsh
 
-_ztupide_source() {
-    builtin source "${1}" > /dev/null 2> /dev/null
-}
-
+# status codes: s = success, f failure | types: p = plugin, t = theme
 _ztupide_load() {
     [ -d "${ZTUPIDE_PLUGIN_PATH}" ] || mkdir "${ZTUPIDE_PLUGIN_PATH}"
 
@@ -15,24 +12,25 @@ _ztupide_load() {
     local theme_file=("${plugin_path}"/*.zsh-theme(NY1)) # match first .zsh-theme found, prevents multiple .zsh-theme
     
     # zcompile all .zsh/.zsh-theme files
-    for f in ${plugin_path}/**/*.{zsh,zsh-theme}(N); do
+    for f in "${plugin_path}"/**/*.{zsh,zsh-theme}(N); do
         [[ ! -z "${force}" || ( ! "${f}".zwc -nt "${f}" && -r "${f}" && -w "${f:h}" ) ]] && zcompile $f
     done
     
+    local callbacks="${(@j/:/)@:2}"
     if [[ -d "${plugin_path}" && "${#plugin_file}" -eq 1 ]]; then
-        echo "_load_success:${1}:${plugin_file[1]}:${(j/:/)@:2}"
-    elif [[ -d "${plugin_path}" && -z "${_ztupide_theme_loaded}" && "${#theme_file}" -eq 1 ]]; then
-        echo "_load_success_theme:${1}:${theme_file[1]}:${(j/:/)@:2}"
-    elif [[ -d "${plugin_path}" && -n "${_ztupide_theme_loaded}" && "${#theme_file}" -eq 1 ]]; then
-        echo "_load_fail_theme:${1}"
+        print "s:p:${1}:${callbacks:+${callbacks}:}${plugin_file[1]}"
+    elif [[ -d "${plugin_path}" && -z "${_ztupide_loaded_theme}" && "${#theme_file}" -eq 1 ]]; then
+        print "s:t:${1}:${callbacks:+${callbacks}:}${theme_file[1]}"
+    elif [[ -d "${plugin_path}" && -n "${_ztupide_loaded_theme}" && "${#theme_file}" -eq 1 ]]; then
+        print "f:t:${1}:/"
     else
         [ -d "${plugin_path}"/.git ] && rm -rf "${plugin_path}"
-        echo "_load_fail:${1}"
+        print "f:p:${1}:/"
     fi
 }
 
 _ztupide_remove() {
-    [ -z "${1}" ] && echo "plugin remove error: none specified" && return 1
+    [ -z "${1}" ] && print "plugin remove error: none specified" && return 1
 
     local plugin_name="${1:t}"
     local plugin_path="${ZTUPIDE_PLUGIN_PATH}"/"${plugin_name}"
@@ -40,16 +38,16 @@ _ztupide_remove() {
     if [ -d "${plugin_path}" ]; then
         if [ -d "${plugin_path}"/.git ]; then
             rm -rf "${plugin_path}"
-            echo "plugin ${plugin_name} removed"
+            print "plugin ${plugin_name} removed"
         else
             read "ans?${plugin_name} is a local plugin. Do you want to remove it (y/N)? "
             if [[ "${ans}" =~ ^[Yy]$ ]]; then
                 rm -rf "${plugin_path}"
-                echo "plugin ${plugin_name} removed"
+                print "plugin ${plugin_name} removed"
             fi
         fi
     else
-        echo "plugin remove error: ${plugin_name} plugin not found"
+        print "plugin remove error: ${plugin_name} plugin not found"
         return 1
     fi
 }
@@ -80,7 +78,7 @@ _ztupide_update_all() {
         fi
     done
     
-    echo "${EPOCHSECONDS}" > ~/.zsh/ztupide/ztupide_last_update
+    print "${EPOCHSECONDS}" > ~/.zsh/ztupide/ztupide_last_update
 }
 
 _ztupide_autoupdate() {
@@ -96,39 +94,39 @@ _ztupide_autoupdate() {
 }
 
 _ztupide_load_async_handler() {
-    if read -r -u ${1} line && [[ "${line:0:5}" = "_load" ]]; then
-        if [[ "${line:5:8}" = "_success" ]]; then
-            local ret=(${(@s/:/)line})
-            local type=${${ret[1]:13:6}:-"_plugi"} # easier to parse if the types string are the same length
-            _ztupide_to_source["${ret[2]}"]="${type}:${ret[3]}"
+    if read -r -u ${1} line; then
+        local plugin_path=/${line##*:/}
+        local meta=(${(@s/:/)${${line%"${plugin_path}"}:0:-1}})
+
+        if [[ "${meta[1]}" = "s" ]]; then
+            _ztupide_to_source["${meta[3]}"]="${meta[2]}:${plugin_path}"
 
             for plugin in ${_ztupide_to_load}; do
                 if [ -z "${_ztupide_to_source["${plugin}"]}" ]; then
                     return
-                elif [ "${_ztupide_to_source["${plugin}"]}" = "_fail" ]; then
+                elif [ "${_ztupide_to_source["${plugin}"]}" = "f" ]; then
                     _ztupide_to_load=(${_ztupide_to_load:1})
                 else
-                    if [[ "${_ztupide_to_source["${plugin}"]:0:6}" = "_theme" ]]; then
-                        if [[ -z "${_ztupide_theme_loaded}" ]]; then
-                            _ztupide_theme_loaded="${plugin}"
+                    if [[ "${${_ztupide_to_source["${plugin}"]}[1]}" = "t" ]]; then
+                        if [[ -z "${_ztupide_loaded_theme}" ]]; then
+                            _ztupide_loaded_theme="${plugin}"
                         else
-                            echo "cannot load theme: "${plugin}" -> the following theme is already in use: ${_ztupide_theme_loaded}"
+                            print "theme load error: "${plugin}" -> the following theme is already in use: ${_ztupide_loaded_theme}"
                             continue
                         fi
                     fi
                     _ztupide_to_load=(${_ztupide_to_load:1})
-                    _ztupide_source "${_ztupide_to_source["${plugin}"]:7}"
-                    for ((i = 4; i <= ${#ret}; i++)); do
-                        [ -z "${ret[${i}]}" ] || eval "${ret[${i}]}"
-                    done
+                    builtin source "${_ztupide_to_source["${plugin}"]:2}" > /dev/null 2> /dev/null 
+
+                    for c in ${(s/:/)meta[4]}; do eval "${c}"; done # eval callbacks
                 fi
             done
         else
-            _ztupide_to_source["${${(@s/:/)line}[2]}"]="_fail"
-            if [[ "${line:0:16}" = "_load_fail_theme" ]]; then
-                echo "cannot load theme: "${${(@s/:/)line}[2]}" -> the following theme is already in use: ${_ztupide_theme_loaded}"
+            _ztupide_to_source["${meta[3]}"]="f"
+            if [[ "${meta[2]}" = "t" ]]; then
+                print "theme load error: "${meta[3]}" -> the following theme is already in use: ${_ztupide_loaded_theme}"
             else
-                echo "plugin load error: "${${(@s/:/)line}[2]}" is not a valid plugin"
+                print "plugin load error: "${meta[3]}" is not a valid plugin"
             fi
         fi
     fi
@@ -141,17 +139,17 @@ _ztupide_load_async_handler() {
 
 _ztupide_load_sync() {
     local ret=$(_ztupide_load ${@})
-    if [[ "${ret:0:13}" = "_load_success" ]]; then
-        [[ "${ret:13:6}" = "_theme" ]] && _ztupide_theme_loaded="${${(@s/:/)ret}[2]}"
-        ret=(${(@s/:/)ret})
-        _ztupide_source "${ret[3]}"
-        for ((i = 4; i <= ${#ret}; i++)); do
-            [ -z "${ret[${i}]}" ] || eval "${ret[${i}]}"
-        done
-    elif [[ "${ret:0:16}" = "_load_fail_theme" ]]; then
-        echo "cannot load theme: "${${(@s/:/)ret}[2]}" -> the following theme is already in use: ${_ztupide_theme_loaded}"
+    local plugin_path=/${ret##*:/}
+    local meta=(${(@s/:/)${${ret%"${plugin_path}"}:0:-1}})
+
+    if [[ "${meta[1]}" = "s" ]]; then
+        [[ "${meta[2]}" = "t" ]] && _ztupide_loaded_theme="${meta[3]}"
+        builtin source "${plugin_path}" > /dev/null 2> /dev/null
+        for c in ${(s/:/)meta[4]}; do eval "${c}"; done # eval callbacks
+    elif [[ "${meta[2]}" = "t" ]]; then
+        print "theme load error: "${meta[3]}" -> the following theme is already in use: ${_ztupide_loaded_theme}"
     else
-        echo "plugin load error: "${${(@s/:/)ret}[2]}" is not a valid plugin"
+        print "plugin load error: "${meta[3]}" is not a valid plugin"
     fi
 }
 
@@ -169,7 +167,7 @@ _ztupide_load_async() {
 
 _ztupide_init() {
     _ztupide_path=${1:a}
-    typeset -g _ztupide_theme_loaded
+    typeset -g _ztupide_loaded_theme
 
     ZTUPIDE_PLUGIN_PATH=${ZTUPIDE_PLUGIN_PATH:-~/.zsh/plugins}
     # zcompile this file
@@ -185,7 +183,7 @@ _ztupide_init() {
 }
 
 _ztupide_help() {
-    echo "Usage : ztupide OPTION [--async] [PLUGIN]
+    print "Usage : ztupide OPTION [--async] [PLUGIN]
 
 Options:
 help\t\tshows this message
@@ -198,11 +196,11 @@ ztupide() {
     case "${1}" in
     load)
         if [ "${2}" = "--async" ]; then
-            [ -z "${3}" ] && echo "plugin load error: none specified" && return 1
+            [ -z "${3}" ] && print "plugin load error: none specified" && return 1
             _ztupide_to_load+="${3}"
             _ztupide_load_async ${@:3}
         else
-            [ -z "${2}" ] && echo "plugin load error: none specified" && return 1
+            [ -z "${2}" ] && print "plugin load error: none specified" && return 1
             _ztupide_load_sync "${@:2}"
         fi
         ;;

@@ -33,7 +33,7 @@ To update ztupide and all its plugins use `ztupide update`.
 
 ## Example
 
-```zsh
+```bash
 [ -f ~/.zsh/ztupide/ztupide.zsh ] || git -C ~/.zsh clone https://github.com/mpostaire/ztupide
 ZTUPIDE_AUTOUPDATE=604800 # autoupdate interval of 7 days
 source ~/.zsh/ztupide/ztupide.zsh
@@ -43,6 +43,9 @@ ztupide load --async zdharma/fast-syntax-highlighting
 
 # load local plugin installed in $ZTUPIDE_PLUGIN_PATH/zsh-colored-ls
 ztupide load zsh-colored-ls
+
+# adding completion functions to fpath doesn't work using the --async mode
+ztupide load zsh-users/zsh-completions
 
 # set variable before loading its plugin
 ZSH_AUTOSUGGEST_USE_ASYNC=1

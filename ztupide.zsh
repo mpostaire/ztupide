@@ -179,7 +179,8 @@ _ztupide_init() {
     _ztupide_to_load=()
     typeset -gA _ztupide_to_source
 
-    compdef _ztupide ztupide
+    # add completion function to fpath
+    fpath+=("${_ztupide_path:h}")
 }
 
 _ztupide_help() {
@@ -218,33 +219,6 @@ ztupide() {
         return 1
         ;;
     esac
-}
-
-# completion function
-function _ztupide() {
-    local line
-    _arguments -C \
-        '1: :((load\:"load plugin" remove\:"remove plugin" update\:"update ztupide and all plugins" help\:"print help message"))' \
-        '*::arg:->args'
-
-    local plugins=(${ZTUPIDE_PLUGIN_PATH}/*(N))
-    for ((i = 1; i <= ${#plugins}; i++)); do
-        plugins[${i}]=${plugins[${i}]:t}
-    done
-
-    case ${line[1]} in
-        load)
-            _arguments -C "1: :((--async\:'load plugin asynchronously' ${plugins}))" '*::arg:->args'
-            case ${line[1]} in
-                --async)
-                    _arguments "1: :(${plugins})"
-                    ;;
-            esac
-            ;;
-        remove)
-            _arguments "1: :(${plugins})"
-            ;;
-    esac;
 }
 
 _ztupide_init ${0}

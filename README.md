@@ -4,7 +4,7 @@ A simple and fast zsh plugin manager. It uses zcompile and async loading to spee
 
 ## Installation
 
-Place this at the top of your .zshrc file but below compinit (or you won't have ztupide completions):
+Place this at the top of your .zshrc file and before compinit (or you won't have ztupide completions):
 
 ```zsh
 [ -f ~/.zsh/ztupide/ztupide.zsh ] || git -C ~/.zsh clone https://github.com/mpostaire/ztupide

@@ -54,7 +54,7 @@ _ztupide_remove() {
 
 _ztupide_update() {
     echo "checking ${1:t} for updates..."
-    [ -z "$(git branch --list main)" ] && local branch="main" || local branch="master"
+    [ -z "$(git -C ${1} branch --list main)" ] && local branch="main" || local branch="master"
     git -C ${1} fetch origin "${branch}" --quiet
     local local=$(git -C ${1} rev-parse HEAD)
     local base=$(git -C ${1} rev-parse '@{u}')

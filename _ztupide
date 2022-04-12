@@ -24,4 +24,4 @@ case ${line[1]} in
     remove)
         _arguments "1: :(${plugins[*]})"
         ;;
-esac;
+esac

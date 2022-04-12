@@ -44,8 +44,9 @@ ztupide load --async zdharma/fast-syntax-highlighting
 # load local plugin installed in $ZTUPIDE_PLUGIN_PATH/zsh-colored-ls
 ztupide load zsh-colored-ls
 
-# adding completion functions to fpath doesn't work using the --async mode
-ztupide load zsh-users/zsh-completions
+# execute compinit as a callback after the completion functions are finished being
+# sourced or you can load without the --async mode and put compinit after this line
+ztupide load --async zsh-users/zsh-completions 'autoload -U compinit && compinit'
 
 # set variable before loading its plugin
 ZSH_AUTOSUGGEST_USE_ASYNC=1

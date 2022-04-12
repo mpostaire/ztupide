@@ -1,5 +1,7 @@
 #compdef ztupide
 
+# shellcheck disable=SC2168
+
 local line
 _arguments -C \
     '1: :((load\:"load plugin" remove\:"remove plugin" update\:"update ztupide and all plugins" help\:"print help message"))' \

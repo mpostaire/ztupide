@@ -2,7 +2,7 @@
 
 # status codes: s = success, f failure | types: p = plugin, t = theme
 _ztupide_load() {
-    [ -d "${ZTUPIDE_PLUGIN_PATH}" ] || mkdir "${ZTUPIDE_PLUGIN_PATH}"
+    [ -d "${ZTUPIDE_PLUGIN_PATH}" ] || mkdir -p "${ZTUPIDE_PLUGIN_PATH}"
 
     local plugin_name="${1:t}"
     local plugin_path="${ZTUPIDE_PLUGIN_PATH}"/"${plugin_name}"

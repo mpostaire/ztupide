@@ -1,27 +1,29 @@
 #compdef ztupide
 
-# shellcheck disable=SC2168
-
 local line
 _arguments -C \
-    '1: :((load\:"load plugin" remove\:"remove plugin" update\:"update ztupide and all plugins" help\:"print help message"))' \
+    '1: :((load:"load plugin" remove:"remove plugin" update:"update ztupide and all plugins" help:"print help message"))' \
     '*::arg:->args'
 
 local plugins=("${ZTUPIDE_PLUGIN_PATH}"/*(N))
 for ((i = 1; i <= ${#plugins}; i++)); do
-    plugins[${i}]=${plugins[${i}]:t}
+    if [ -d "${plugins[${i}]}"/.git ]; then
+        plugins[${i}]="${plugins[${i}]:t}:'Remote plugin'"
+    else
+        plugins[${i}]="${plugins[${i}]:t}:'Local plugin'"
+    fi
 done
 
 case ${line[1]} in
     load)
-        _arguments -C "1: :((--async\:'load plugin asynchronously' ${plugins[*]}))" '*::arg:->args'
+        _arguments -C "1: :((--async:'load plugin asynchronously' ${plugins[*]}))" '*::arg:->args'
         case ${line[1]} in
             --async)
-                _arguments "1: :(${plugins[*]})"
+                _arguments "1: :((${plugins[*]}))"
                 ;;
         esac
         ;;
     remove)
-        _arguments "1: :(${plugins[*]})"
+        _arguments "1: :((${plugins[*]}))"
         ;;
 esac

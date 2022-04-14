@@ -51,8 +51,8 @@ ztupide load --async zsh-users/zsh-completions 'autoload -U compinit && compinit
 # set variable before loading its plugin
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 # it's better to load zsh-autosuggestions after compinit
-# call _zsh_autosuggest_start function after the plugin is loaded.
-ztupide load --async zsh-users/zsh-autosuggestions _zsh_autosuggest_start
+# this will also call _zsh_autosuggest_start after the plugin is loaded.
+ztupide load --async zsh-users/zsh-autosuggestions '_zsh_autosuggest_start'
 
 # Here fast-syntax-highlighting and zsh-autosuggestions may still be
 # loading but it's guaranteed that fast-syntax-highlighting will be

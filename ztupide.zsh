@@ -78,13 +78,13 @@ _ztupide_update_all() {
         fi
     done
     
-    print "${EPOCHSECONDS}" > ~/.zsh/ztupide/ztupide_last_update
+    print "${EPOCHSECONDS}" > "${_ztupide_path:h}"/ztupide_last_update
 }
 
 _ztupide_autoupdate() {
     if [ ! -z ${ZTUPIDE_AUTOUPDATE} ]; then
-        if [ -f ~/.zsh/ztupide/ztupide_last_update ]; then
-            local delta=$(cat ~/.zsh/ztupide/ztupide_last_update)
+        if [ -f "${_ztupide_path:h}"/ztupide_last_update ]; then
+            local delta=$(<"${_ztupide_path:h}"/ztupide_last_update)
             (( delta = ${EPOCHSECONDS} - ${delta} ))
             [ ${delta} -gt ${ZTUPIDE_AUTOUPDATE} ] && _ztupide_update_all
         else

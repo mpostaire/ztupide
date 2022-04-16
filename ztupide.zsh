@@ -71,7 +71,7 @@ _ztupide_update_all() {
     local plugin_path
     for plugin_path in "${ZTUPIDE_PLUGIN_PATH}"/*(/N); do
         if [ -d "${plugin_path}"/.git ]; then
-            local plugin_file=("${plugin_path}"/*.plugin.zsh(NY1))
+            local plugin_file=("${plugin_path}"/*.{plugin.zsh,zsh-theme}(NY1))
             if [ "${#plugin_file}" -eq 1 ]; then
                 _ztupide_update ${plugin_path}
             fi

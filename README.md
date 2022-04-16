@@ -34,7 +34,7 @@ To update ztupide and all its plugins use `ztupide update`.
 ## Example
 
 ```bash
-[ -f ~/.zsh/ztupide/ztupide.zsh ] || git -C ~/.zsh clone https://github.com/mpostaire/ztupide
+[ -f ~/.zsh/ztupide/ztupide.zsh ] || git -C ~/.zsh clone https://github.com/mpostaire/ztupide.git
 ZTUPIDE_AUTOUPDATE=604800 # autoupdate interval of 7 days
 source ~/.zsh/ztupide/ztupide.zsh
 

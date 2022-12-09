@@ -109,10 +109,10 @@ _ztupide_init() {
     typeset -g _ztupide_loaded_theme
 
     ZTUPIDE_PLUGIN_PATH=${ZTUPIDE_PLUGIN_PATH:-${ZDOTDIR:-$HOME/.zsh}/plugins}
-    ZTUPIDE_USE_ASYNC=${ZTUPIDE_USE_ASYNC:-1}
+    ZTUPIDE_DISABLE_ASYNC=${ZTUPIDE_DISABLE_ASYNC:-1}
 
-    # use zsh-defer if ZTUPIDE_USE_ASYNC is 1 to enable '--async' option with the 'ztupide load' command
-    if (( ${ZTUPIDE_USE_ASYNC} )); then
+    # use zsh-defer if ZTUPIDE_DISABLE_ASYNC is 1 to enable '--async' option with the 'ztupide load' command
+    if (( ${ZTUPIDE_DISABLE_ASYNC} )); then
         _ztupide_load 0 romkatv/zsh-defer
     fi
 

@@ -20,6 +20,7 @@ You can set variables to change the behaviour of ztupide (they must be set befor
 |-|-|
 | ZTUPIDE_PLUGIN_PATH | Plugins installation path (default: `~/.zsh/plugins`) |
 | ZTUPIDE_AUTOUPDATE  | Check for updates interval in seconds (no autoupdates if unset). |
+| ZTUPIDE_DISABLE_ASYNC | Disable plugin async loading (async loading is enabled by default) |
 
 ## Usage
 

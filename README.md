@@ -28,7 +28,7 @@ Ztupide supports "local" and "remote" plugins and must use the `.plugin.zsh` or 
 
 Use `ztupide load user/plugin_name` to load a remote plugin (only github is supported) and `ztupide load plugin_name` to load a local plugin. You can use async mode like this: `ztupide load --async user/plugin_name`. Plugins loaded in async mode are guaranteed to be sourced in the same order as they are loaded. You can also add callbacks after the plugin is loaded like this: `ztupide load --async user/plugin_name callback1 callback2 ...`.
 
-To remove a plugin use `ztupide remove plugin_name`. A prompt will ask for confirmation if it's a local plugin.
+To remove a plugin use `ztupide unload plugin_name`. A prompt will ask for confirmation if it's a local plugin.
 
 To update ztupide and all its plugins use `ztupide update`.
 

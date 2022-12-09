@@ -2,10 +2,10 @@
 
 local line
 _arguments -C \
-    '1: :((load:"load plugin" remove:"remove plugin" update:"update ztupide and all plugins" help:"print help message"))' \
+    '1: :((load:"load plugin" unload:"remove plugin" update:"update ztupide and all plugins" help:"print help message"))' \
     '*::arg:->args'
 
-local plugins=("${ZTUPIDE_PLUGIN_PATH}"/*(N))
+local plugins=("${ZTUPIDE_PLUGIN_PATH}"/*(/N))
 for ((i = 1; i <= ${#plugins}; i++)); do
     if [ -d "${plugins[${i}]}"/.git ]; then
         plugins[${i}]="${plugins[${i}]:t}:'Remote plugin'"
@@ -23,7 +23,7 @@ case ${line[1]} in
                 ;;
         esac
         ;;
-    remove)
+    unload)
         _arguments "1: :((${plugins[*]}))"
         ;;
 esac

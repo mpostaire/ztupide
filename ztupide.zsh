@@ -38,10 +38,10 @@ _ztupide_load() {
     zsh_loaded_plugins+=(${repo})
 
     if (( ${1} && $+functions[zsh-defer] )); then
-        zsh-defer -c "ZERO=${initfile} . ${initfile}"
+        zsh-defer -dmpr -c "ZERO=${initfile} . ${initfile}"
         if [[ "${3}" != 0 ]]; then
             local cb
-            for cb in ${@:3}; do zsh-defer -c "${cb}"; done
+            for cb in ${@:3}; do zsh-defer -dmpr -c "${cb}"; done
         fi
     else
         ZERO=${initfile} . ${initfile}
@@ -133,10 +133,9 @@ _ztupide_init() {
     typeset -gUa zsh_loaded_plugins
 
     typeset -g ZTUPIDE_PLUGIN_PATH=${ZTUPIDE_PLUGIN_PATH:-${ZDOTDIR:-$HOME/.zsh}/plugins}
-    typeset -g ZTUPIDE_DISABLE_ASYNC=${ZTUPIDE_DISABLE_ASYNC:-1}
 
     # use zsh-defer if ZTUPIDE_DISABLE_ASYNC is 1 to enable '--async' option with the 'ztupide load' command
-    (( ${ZTUPIDE_DISABLE_ASYNC} )) && _ztupide_load 0 romkatv/zsh-defer
+    (( ! ${+ZTUPIDE_DISABLE_ASYNC} )) && _ztupide_load 0 romkatv/zsh-defer
 
     typeset -g ZPFX
     : ${ZPFX:=${_ztupide_path:h}/polaris}
@@ -167,7 +166,7 @@ ztupide() {
     load)
         local async
         if [ "${2}" = "--async" ]; then
-            async=1
+            async=$(( ! ${+ZTUPIDE_DISABLE_ASYNC} ))
             shift
         fi
         [ -z "${2}" ] && print "plugin load error: none specified" && return 1

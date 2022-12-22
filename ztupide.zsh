@@ -41,7 +41,7 @@ _ztupide_load() {
         zsh-defer -dmpr -c "ZERO=${initfile} . ${initfile}"
         if [[ "${3}" != 0 ]]; then
             local cb
-            for cb in ${@:3}; do zsh-defer -dmpr -c "${cb}"; done
+            for cb in ${@:3}; do zsh-defer -a -c "${cb}"; done
         fi
     else
         ZERO=${initfile} . ${initfile}

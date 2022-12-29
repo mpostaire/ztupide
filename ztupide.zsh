@@ -188,5 +188,4 @@ ztupide() {
     esac
 }
 
-# TODO async _ztupide_init
 _ztupide_init ${0}

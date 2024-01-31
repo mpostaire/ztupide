@@ -6,10 +6,12 @@ A simple and fast zsh plugin manager. It uses zcompile and async loading to spee
 
 Place this at the top of your .zshrc file and before compinit (or you won't have ztupide completions):
 
-```zsh
-[ -f ~/.zsh/ztupide/ztupide.zsh ] || git -C ~/.zsh clone https://github.com/mpostaire/ztupide
-source ~/.zsh/ztupide/ztupide.zsh
+```bash
+ZTUPIDE_DIR=${ZDOTDIR:-$HOME}/ztupide
+[ -f ${ZTUPIDE_DIR}/ztupide.zsh ] || git -C ${ZTUPIDE_DIR:h} clone https://github.com/mpostaire/ztupide.git
+source ${ZTUPIDE_DIR}/ztupide.zsh
 ```
+
 This will source ztupide after installing it if necessary.
 
 ## Configuration
@@ -35,9 +37,10 @@ To update ztupide and all its plugins use `ztupide update`.
 ## Example
 
 ```bash
-[ -f ~/.zsh/ztupide/ztupide.zsh ] || git -C ~/.zsh clone https://github.com/mpostaire/ztupide.git
+ZTUPIDE_DIR=${ZDOTDIR:-$HOME}/ztupide
+[ -f ${ZTUPIDE_DIR}/ztupide.zsh ] || git -C ${ZTUPIDE_DIR:h} clone https://github.com/mpostaire/ztupide.git
 ZTUPIDE_AUTOUPDATE=604800 # autoupdate interval of 7 days
-source ~/.zsh/ztupide/ztupide.zsh
+source ${ZTUPIDE_DIR}/ztupide.zsh
 
 # load remote plugin in async mode
 ztupide load --async zdharma/fast-syntax-highlighting
